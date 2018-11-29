@@ -2,9 +2,9 @@
 
 ## Route URLs to php files
 
-Routing can be accomplished with a `.htaccess` file placed in your root directory for the app.  This is not PHP related.  It's actually something that is a part of Apache.  We'll use this file to specify how our routes map to particular files.
+Routing can be accomplished with a `.htaccess` file placed in your root directory for the app.  This is not PHP related.  It's actually something that is a part of Apache.  It allows the user to take requests and change them in some way, so that the server thinks the original request came in with modifications specified.  For instance you could take all requests to `/people/1` and rewrite it to `/people?id=1`.  We'll use this file to specify how our routes map to particular files.
 
-First tell Apache to allow the ability to rewrite URLs so that they map to specific `.php` files:
+First, tell Apache to allow the ability to rewrite URLs.  In `.htaccess`, add the following:
 
 ```
 RewriteEngine On
@@ -38,3 +38,23 @@ Now let's break down the second line (`RewriteRule ^people$ controllers/people.p
     - this is the "controller" file that we'll create shortly.  It will handle all routes concerning people
 - `?action=index`
     - this says to pass a query parameter to that file called `action` with the value `index`.  You'll see later that we'll use this to query parameter to determine which action (index, show, create, update, delete, etc...) to render
+
+## Create and controller file
+
+Create a `controllers` directory to hold our controller files.  Within that directory, create a `people.php` file.  This will handle all routes that pertain to people models.
+
+In this file put the following PHP code:
+
+```php
+if($_REQUEST['action'] === 'index'){
+    echo "index route"
+}
+```
+
+Go to http://localhost:8888/people to see this in action.  Apache will look at our `.htaccess` file and rewrite the request internally, acting as if the original request was `http://localhost:8888/controllers/people.php?action=index`
+
+The PHP code we wrote looks at the `action` query parameter that our `.htaccess` file tells Apache to create.  If its value equals "index", we're going to render the text "index route" to the browser.  It does this with the `$_REQUEST` variable, which we'll look at next.
+
+Every time we use a PHP file to render something server-side, that file has access to several global variables that contain information about the request that was made.  `$_REQUEST` is an associative array that has info about the query parameters that were used in the request. To retrieve the `action` query parameter that we told Apache to create in our `.htaccess` file, we can just look at `$_REQUEST['action']`.
+
+Later on, when we have more routes, we'll have the `.htaccess` file set the `action` query parameter to different values depending on what the route is (e.g. show, delete, update, etc).  Then in the controller files, we'll test what that value is and use that to determine what JSON to render.  Right now we only have `index` set up in our `.htaccess` file, so our `if` statement is unnecessary, but later on in will become important.
