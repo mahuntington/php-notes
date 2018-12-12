@@ -39,7 +39,7 @@ Now let's break down the second line (`RewriteRule ^people$ controllers/people.p
 - `?action=index`
     - this says to pass a query parameter to that file called `action` with the value `index`.  You'll see later that we'll use this to query parameter to determine which action (index, show, create, update, delete, etc...) to render
 
-## Create and controller file
+## Create a controller file
 
 Create a `controllers` directory to hold our controller files.  Within that directory, create a `people.php` file.  This will handle all routes that pertain to people models.
 
@@ -58,3 +58,43 @@ The PHP code we wrote looks at the `action` query parameter that our `.htaccess`
 Every time we use a PHP file to render something server-side, that file has access to several global variables that contain information about the request that was made.  `$_REQUEST` is an associative array that has info about the query parameters that were used in the request. To retrieve the `action` query parameter that we told Apache to create in our `.htaccess` file, we can just look at `$_REQUEST['action']`.
 
 Later on, when we have more routes, we'll have the `.htaccess` file set the `action` query parameter to different values depending on what the route is (e.g. show, delete, update, etc).  Then in the controller files, we'll test what that value is and use that to determine what JSON to render.  Right now we only have `index` set up in our `.htaccess` file, so our `if` statement is unnecessary, but later on in will become important.
+
+## Create a model file
+
+Now we're going to a create a file which will end up querying the relational database and turning that information into PHP objects.  We call that an Object Relational Mapper (ORM).  First, create a `models` directory, and inside of that create `person.php`.  Add the following code to that file, which will define the `Person` class used to create people objects:
+
+```php
+class Person {
+    public $id;
+    public $name;
+    public $age;
+}
+```
+
+This defines the `Person` class as having three possible properties (id, name, age) which can be edited after the object has been created.
+
+Now, we're going to create a "factory" which will be responsible for generating objects from the database.  At the moment, we're just going to have to create some dummy data:
+
+```php
+class People {
+    static function find(){
+        //create an empty array
+        $people = array();
+
+        //create some random people
+        $person1 = new Person(1,'Bob', 32);
+        $person2 = new Person(1,'Bob', 32);
+        $person3 = new Person(1,'Bob', 32);
+
+        //push the people onto the array
+        $people[] = $person1;
+        $people[] = $person2;
+        $people[] = $person3;
+
+        //return the array of people
+        return $people;
+    }
+}
+```
+
+## Use the people model in the controller
