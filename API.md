@@ -47,7 +47,7 @@ In this file put the following PHP code:
 
 ```php
 if($_REQUEST['action'] === 'index'){
-    echo "index route"
+    echo "index route";
 }
 ```
 
@@ -98,3 +98,27 @@ class People {
 ```
 
 ## Use the people model in the controller
+
+Now that we have our `People`/`Person` model set up, we need to incorporate it into our `People` controller.  First include it into our `controllers/people.php`:
+
+```php
+include_once __DIR__ . '/../models/person.php';
+```
+
+- `include_once` will include the file, unless it's already been included somewhere else in our app.  We could use `include`, but `include_once` keeps us from accidentally running the `models/people.php` more than once.
+- `__DIR__` just spits out the full absolute path the directory of the current file that's running that line of code
+- `/../models/person.php`: since we're currently in the `controllers` directory, we need to travel up a level to the project's root dir and then into the `models/` directory.  We then reference the `person.php` file in that directory
+
+Now that we wrote that code, we have our `Person` and `People` classes available to us.  Let's replace
+
+```php
+echo "index route";
+```
+
+with
+
+```php
+echo json_encode(People::find());
+```
+
+This will render the results of `People::find()` (an array of Person objects) as JSON.  Refresh http://localhost:8888/people to see the difference.
