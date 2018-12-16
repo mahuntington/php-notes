@@ -122,3 +122,16 @@ echo json_encode(People::find());
 ```
 
 This will render the results of `People::find()` (an array of Person objects) as JSON.  Refresh http://localhost:8888/people to see the difference.
+
+
+## Add a Content-Type header
+
+Most JavaScript libraries/frameworks that deal with AJAX (e.g. Angular, Axios, fetch, etc) expect a special header to be set in all AJAX responses, telling the requesting client what kind of data is being sent back.  Let's add this to the top of `controllers/people.php`:
+
+```php
+header('Content-Type: application/json');
+```
+
+This is meta data meant just for the client application (the browser).  It isn't part of the response body, so the end user won't see it.  If you look at http://localhost:8888/people, you won't see anything about `Content-Type: application/json`, but it will be available to your AJAX libraries/frameworks.
+
+**NOTE**, this code has to come at the top of the file, before any content is written to response body.  
