@@ -135,3 +135,5 @@ header('Content-Type: application/json');
 This is meta data meant just for the client application (the browser).  It isn't part of the response body, so the end user won't see it.  If you look at http://localhost:8888/people, you won't see anything about `Content-Type: application/json`, but it will be available to your AJAX libraries/frameworks.
 
 **NOTE**, this code has to come at the top of the file, before any content is written to response body.  
+
+## Hook the People model up to the database
