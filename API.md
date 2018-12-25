@@ -136,4 +136,44 @@ This is meta data meant just for the client application (the browser).  It isn't
 
 **NOTE**, this code has to come at the top of the file, before any content is written to response body.  
 
-## Hook the People model up to the database
+## Prepare Postgres for the app
+
+In order to have PHP interact with Postgres, there are a few things we need to do before hand
+
+First, start postgres.  In the terminal, type:
+
+```
+postgres -D /usr/local/var/postgres/
+```
+
+Next, open up a new terminal tab/window and type:
+
+```
+psql postgres
+```
+
+Now we want to create a sub-database for our application (we'll name it `contacts`).  In the `psql` tab, type:
+
+```sql
+CREATE DATABASE contacts;
+```
+
+and now connect to it:
+
+```sql
+\c contacts
+```
+
+Now we want to create a table for our people:
+
+```sql
+CREATE TABLE people (id SERIAL, name VARCHAR(16), age INT);
+```
+
+Let's insert some people:
+
+```sql
+INSERT INTO users ( name, age ) VALUES ( 'Matt', 38 );
+INSERT INTO users ( name, age ) VALUES ( 'Sally', 54 );
+INSERT INTO users ( name, age ) VALUES ( 'Zanthar', 4892 );
+```
