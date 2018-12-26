@@ -43,7 +43,7 @@ Now let's break down the second line (`RewriteRule ^people$ controllers/people.p
 
 Create a `controllers` directory to hold our controller files.  Within that directory, create a `people.php` file.  This will handle all routes that pertain to people models.
 
-In this file put the following PHP code:
+In this file put the following PHP code (**NOTE:** I've ommitted `<?php` and `?>` for ease of reading.  Don't forget to add each to **every** file you create from here on out):
 
 ```php
 if($_REQUEST['action'] === 'index'){
@@ -73,7 +73,7 @@ class Person {
 
 This defines the `Person` class as having three possible properties (id, name, age) which can be edited after the object has been created.
 
-Now, we're going to create a "factory" which will be responsible for generating objects from the database.  At the moment, we're just going to have to create some dummy data:
+Now, we're going to create a "factory" which will be responsible for generating objects from the database.  At the moment, we're just going to have to create some dummy data.  Add the following to the bottom of `models/person.php`:
 
 ```php
 class People {
@@ -176,4 +176,133 @@ Let's insert some people:
 INSERT INTO users ( name, age ) VALUES ( 'Matt', 38 );
 INSERT INTO users ( name, age ) VALUES ( 'Sally', 54 );
 INSERT INTO users ( name, age ) VALUES ( 'Zanthar', 4892 );
+```
+
+## Connect the People model to Postgres
+
+Currently, our `People` model's `find` function randomly generates three `Person` objects when invoked.  Let's have it connect to `postgres` so that it can use the rows we inserted into the `people` table to create the `Person` objects.  At the top of `models/person.php` add the following:
+
+```php
+$dbconn = pg_connect("host=localhost dbname=contacts");
+```
+
+Now that we're connected to Postgres, we can have PHP query the database.  In `models/person.php`, let's alter our `find` function:
+
+```php
+class People {
+    static function find(){
+        //create an empty array
+        $people = array();
+
+        //query the database
+        $results = pg_query("SELECT * FROM people");
+
+        return $people;
+    }
+}
+```
+
+Our `$results` variable is a result set.  It's basically like a PHP version of the rows retrieved from Postgres.  Now we'll use the `pg_fetch_object` function to remove the first row from the `$results` dataset and turn it into an object:
+
+```php
+$results = pg_query("SELECT * FROM people");
+$row_object = pg_fetch_object($results); //remove a row from the results and turn it into an object
+```
+
+To see what our `$row_object` looks like, let's add the following:
+
+```php
+$results = pg_query("SELECT * FROM people");
+$row_object = pg_fetch_object($results);
+var_dump($row_object); //print values of the object
+die(); //halt execution
+```
+
+Now we can see the various values that are available to us for the row that was returned.
+
+- `var_dump` will take any object and print its values
+- `die` will halt execution from continuing so that you can read what was printed
+
+If we keep removing rows from `$results`, we'll eventually run out of rows.  When this happens, `pg_fetch_object` returns `false`
+
+```php
+$results = pg_query("SELECT * FROM people");
+
+$row_object = pg_fetch_object($results);
+var_dump($row_object);
+
+$row_object = pg_fetch_object($results);
+var_dump($row_object);
+
+$row_object = pg_fetch_object($results);
+var_dump($row_object);
+
+$row_object = pg_fetch_object($results);
+var_dump($row_object);
+
+die();
+```
+
+Let's change this so it does this with a `while` loop.  This way, no matter how many rows are in the results, all will be printed:
+
+```php
+class People {
+    static function find(){
+        //create an empty array
+        $people = array();
+
+        //query the database
+        $results = pg_query("SELECT * FROM people");
+
+        $row_object = pg_fetch_object($results)
+        while($row_object){
+            var_dump($row_object);
+            $row_object = pg_fetch_object($results);
+        }
+        die();
+
+        return $people;
+    }
+}
+```
+
+Now, as long as `$results` has rows, `while($row_object)` will run its code. As soon as all the rows have been removed, `$row_object` will be `false` and the `while` loop will exit.
+
+Now that we can see the various rows in our `$results` as objects, we can use this info to create `Person` objects which we'll push onto our `$people` array.
+
+```php
+class People {
+    static function find(){
+        //create an empty array
+        $people = array();
+
+        //query the database
+        $results = pg_query("SELECT * FROM people");
+
+        $row_object = pg_fetch_object($results)
+        while($row_object){
+
+            $new_person = new Person( //create a new person
+                $row_object->id,
+                $row_object->name,
+                $row_object->age,
+            );
+            $people[] = $new_person; //push new person object onto $people array
+
+            $row_object = pg_fetch_object($results);
+        }
+
+        return $people;
+    }
+}
+```
+
+One thing you might notice is that the `id` and `age` values for each person are strings.  Let's change those into integers:
+
+```php
+$new_person = new Person(
+    intval($row_object->id),
+    $row_object->name,
+    intval($row_object->age),
+);
 ```
