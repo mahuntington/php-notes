@@ -82,12 +82,12 @@ Currently, `file_get_contents('php://input')` just returns a string.  Let's turn
 if($_REQUEST['action'] === 'index'){
     echo json_encode(People::find());
 } else if ($_REQUEST['action'] === 'post'){
-    $requestBody = file_get_contents('php://input');
-    $body_object = json_decode($requestBody);
+    $request_body = file_get_contents('php://input');
+    $body_object = json_decode($request_body);
 }
 ```
 
-`json_decode()` will take the `$requestBody` string and convert it into an object
+`json_decode()` will take the `$request_body` string and convert it into an object
 
 Don't forget that `People::create()`, takes a `Person` object as a parameter.  Let's create a `Person` object from the `$body_object`:
 
@@ -95,8 +95,8 @@ Don't forget that `People::create()`, takes a `Person` object as a parameter.  L
 if($_REQUEST['action'] === 'index'){
     echo json_encode(People::find());
 } else if ($_REQUEST['action'] === 'post'){
-    $requestBody = file_get_contents('php://input');
-    $body_object = json_decode($requestBody);
+    $request_body = file_get_contents('php://input');
+    $body_object = json_decode($request_body);
     $newPerson = new Person(null, $body_object->name, $body_object->age);
 }
 ```
@@ -107,8 +107,8 @@ Finally, we can pass `$newPerson` off to `People::create()`:
 if($_REQUEST['action'] === 'index'){
     echo json_encode(People::find());
 } else if ($_REQUEST['action'] === 'post'){
-    $requestBody = file_get_contents('php://input');
-    $body_object = json_decode($requestBody);
+    $request_body = file_get_contents('php://input');
+    $body_object = json_decode($request_body);
     $newPerson = new Person(null, $body_object->name, $body_object->age);
     People::create($newPerson);
     return '{"worked":true}';
@@ -145,8 +145,8 @@ Now in `controllers/people.php` send the return value of `People::create()` back
 if($_REQUEST['action'] === 'index'){
     echo json_encode(People::find());
 } else if ($_REQUEST['action'] === 'post'){
-    $requestBody = file_get_contents('php://input');
-    $body_object = json_decode($requestBody);
+    $request_body = file_get_contents('php://input');
+    $body_object = json_decode($request_body);
     $newPerson = new Person(null, $body_object->name, $body_object->age);
     $allPeople = People::create($newPerson);
 
@@ -155,3 +155,49 @@ if($_REQUEST['action'] === 'index'){
 ```
 
 Now when you create a new person in Postman, you should get back all the People currently in the DB as a response.
+
+## Update
+
+### Set up the model
+
+We're going to do the same as with `People::create()`, but with some minor changes.  Add the following to the `People` model in `models/person.php`:
+
+```php
+static function update($updatedPerson){
+    $query = "UPDATE people SET name = $1, age = $2, WHERE id = $3";
+    $query_params = array($updatedPerson->name, $updatedPerson->age, $updatedPerson->id);
+    $result = pg_query_params($query, $query_params);
+
+    return self::find();
+}
+```
+
+Pay careful attention to the order of the parameters in the `$query_params` array.  `id` comes last because it was assigned to `$3` in the SQL statement
+
+### Hook the controller up with the model
+
+Again, the route in `.htaccess` should be pretty similar to the `POST` route:
+
+```
+RewriteCond %{REQUEST_METHOD} ^PUT$
+RewriteRule ^people/([0-9]+)$ controllers/people.php?action=update&id=$1
+```
+
+The first difference you'll see is `([0-9]+)`.  This is just more regex work.  It basically means any integer.  If you're interested in learning more about how this works, check out [these tutorials on regex](https://www.regular-expressions.info/tutorial.html).  What it allows us to do is have a route for urls like `people/123`, `people/5`, or `people/2347346`, etc.
+
+One that same line second line of the route, you'll notice `&id=$1` at the end of the rule.  This adds a second query parameter to `controllers/people.php` called `id` and sets it to whatever is inside the `()` of `^people/([0-9]+)$`.  In other words, if the URL is `people/2347346`.  The id query param will be 2347346.
+
+Now let's update `controllers/people.php` to handle these requests.  Add the following:
+
+```php
+} else if ($_REQUEST['action'] === 'update'){
+    $request_body = file_get_contents('php://input');
+    $body_object = json_decode($request_body);
+    $updatedPerson = new Person($_REQUEST['id'], $body_object->name, $body_object->age);
+    $allPeople = People::update($updatedPerson);
+
+    echo json_encode($allPeople);
+}
+```
+
+This is very similar to the create action.  The only real difference is that we use `$_REQUEST['id']` to fetch the id of the person to be updated from the URL of the route.  Everything else for the new `Person` object comes from the request body as normal.
