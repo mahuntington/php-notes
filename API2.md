@@ -201,3 +201,43 @@ Now let's update `controllers/people.php` to handle these requests.  Add the fol
 ```
 
 This is very similar to the create action.  The only real difference is that we use `$_REQUEST['id']` to fetch the id of the person to be updated from the URL of the route.  Everything else for the new `Person` object comes from the request body as normal.
+
+## Delete
+
+### Set up the model
+
+Add the following to the `People` model in `models/person.php`:
+
+```php
+static function delete($id){
+    $query = "DELETE FROM people WHERE id = $1";
+    $query_params = array($id);
+    $result = pg_query_params($query, $query_params);
+
+    return self::find();
+}
+```
+
+Note that the `$id` is just going to be an integer that we pass into `People:delete()`.  Even if we only have one query param, we still need to put it in an array.
+
+### Hook the controller up with the model
+
+Add the following to `.htaccess`:
+
+```
+RewriteCond %{REQUEST_METHOD} ^DELETE$
+RewriteRule ^people/([0-9]+)$ controllers/people.php?action=delete&id=$1
+```
+
+This is similar to update, but with the request method being DELETE and the `action` query param set to `delete`.
+
+Now let's update `controllers/people.php` to handle these requests.  Add the following:
+
+```php
+} else if ($_REQUEST['action'] === 'delete'){
+    $allPeople = People::delete($_REQUEST['id']);
+    echo json_encode($allPeople);
+}
+```
+
+Note that we don't need to do anything with the request body.  We just pass `$_REQUEST['id']` to `People::delete()`.  Don't forget that `$_REQUEST['id']` is the query parameter we set up in `.htaccess`.
