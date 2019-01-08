@@ -178,9 +178,9 @@ Some kinds of string interpolation work:
 <?php
 	$my_var = 1;
 	echo $my_var;
-	$my_var += 3; //$my_var = $my_var + 1;
+	$my_var += 3; //$my_var = $my_var + 3;
 	echo $my_var;
-	$my_var -= 2; //$my_var = $my_var - 1;
+	$my_var -= 2; //$my_var = $my_var - 2;
 	echo $my_var;
 	$my_var *= 2; //$my_var = $my_var * 2;
 	echo $my_var;
@@ -202,7 +202,7 @@ The traditional format works great:
 		echo "x > 2";
 	}
 	elseif($x < 2){
-		echo "x > 2";
+		echo "x < 2";
 	}
 	else{
 		echo "x == 2";
@@ -216,7 +216,7 @@ If you have html and don't want to have lines that look like `<?php } ?>`, you c
 <?php $x = 1; ?>
 <?php if($x > 2): ?>
 	<code>x &gt; 2</code>
-<?php elseif($ < 2): ?>
+<?php elseif($x < 2): ?>
 	<code>x &lt; 2</code>
 <?php else: ?>
 	<code>x == 2</code>
