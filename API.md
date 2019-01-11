@@ -68,6 +68,11 @@ class Person {
     public $id;
     public $name;
     public $age;
+    public function __construct($id, $name, $age) {
+        $this->id = $id;
+        $this->name = $name;
+        $this->age = $age;
+    }
 }
 ```
 
@@ -77,7 +82,7 @@ Now, we're going to create a "factory" which will be responsible for generating 
 
 ```php
 class People {
-    static function find(){
+    static function all(){
         //create an empty array
         $people = array();
 
@@ -118,10 +123,10 @@ echo "index route";
 with
 
 ```php
-echo json_encode(People::find());
+echo json_encode(People::all());
 ```
 
-This will render the results of `People::find()` (an array of Person objects) as JSON.  Refresh http://localhost:8888/people to see the difference.
+This will render the results of `People::all()` (an array of Person objects) as JSON.  Refresh http://localhost:8888/people to see the difference.
 
 
 ## Add a Content-Type header
@@ -180,17 +185,17 @@ INSERT INTO users ( name, age ) VALUES ( 'Zanthar', 4892 );
 
 ## Connect the People model to Postgres
 
-Currently, our `People` model's `find` function randomly generates three `Person` objects when invoked.  Let's have it connect to `postgres` so that it can use the rows we inserted into the `people` table to create the `Person` objects.  At the top of `models/person.php` add the following:
+Currently, our `People` model's `all` function randomly generates three `Person` objects when invoked.  Let's have it connect to `postgres` so that it can use the rows we inserted into the `people` table to create the `Person` objects.  At the top of `models/person.php` add the following:
 
 ```php
 $dbconn = pg_connect("host=localhost dbname=contacts");
 ```
 
-Now that we're connected to Postgres, we can have PHP query the database.  In `models/person.php`, let's alter our `find` function:
+Now that we're connected to Postgres, we can have PHP query the database.  In `models/person.php`, let's alter our `all` function:
 
 ```php
 class People {
-    static function find(){
+    static function all(){
         //create an empty array
         $people = array();
 
@@ -247,7 +252,7 @@ Let's change this so it does this with a `while` loop.  This way, no matter how 
 
 ```php
 class People {
-    static function find(){
+    static function all(){
         //create an empty array
         $people = array();
 
@@ -272,7 +277,7 @@ Now that we can see the various rows in our `$results` as objects, we can use th
 
 ```php
 class People {
-    static function find(){
+    static function all(){
         //create an empty array
         $people = array();
 
