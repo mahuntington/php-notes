@@ -57,4 +57,4 @@ Now we can give people homes like so:
 UPDATE people SET home_id = 2 WHERE id = 4;
 ```
 
-The previous code will find the row with an `id` of 4 and set the `home_id` column to 2;
+The previous code will find the row with an `id` of 4 and set the `home_id` column to 2.
