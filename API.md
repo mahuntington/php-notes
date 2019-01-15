@@ -259,7 +259,7 @@ class People {
         //query the database
         $results = pg_query("SELECT * FROM people");
 
-        $row_object = pg_fetch_object($results)
+        $row_object = pg_fetch_object($results);
         while($row_object){
             var_dump($row_object);
             $row_object = pg_fetch_object($results);
@@ -284,13 +284,13 @@ class People {
         //query the database
         $results = pg_query("SELECT * FROM people");
 
-        $row_object = pg_fetch_object($results)
+        $row_object = pg_fetch_object($results);
         while($row_object){
 
             $new_person = new Person( //create a new person
                 $row_object->id,
                 $row_object->name,
-                $row_object->age,
+                $row_object->age
             );
             $people[] = $new_person; //push new person object onto $people array
 
@@ -308,6 +308,6 @@ One thing you might notice is that the `id` and `age` values for each person are
 $new_person = new Person(
     intval($row_object->id),
     $row_object->name,
-    intval($row_object->age),
+    intval($row_object->age)
 );
 ```
