@@ -145,7 +145,7 @@ $new_person = new Person(
 
 if($row_object->location_id){ //test if location_id is truthy
     $new_location = new Location( //create a location from the row data
-        intval($row_object->location_id),
+        intval($row_object->location_id), //turn the string into an int
         $row_object->street,
         $row_object->city,
         $row_object->state
