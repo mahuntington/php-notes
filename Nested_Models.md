@@ -59,36 +59,103 @@ UPDATE people SET home_id = 2 WHERE id = 4;
 
 The previous code will find the row with an `id` of 4 and set the `home_id` column to 2.
 
-## Update the Person model
+## Update People SQL
 
-First, let's add the functionality to allow the `Person` class to have an optional `home_id`:
+The first thing we want to do is to update the SQL code in the `People` class so that each row from the `people` table is joined onto a corresponding row from the `locations` table.  Once we have the additional columns for each row in the `people` table, we can use that information to create a home for each `Person` object.  Try the following in `psql`:
+
+```SQL
+SELECT * FROM people JOIN locations ON people.home_id = locations.id;
+```
+
+The above SQL statement will only show rows where the people have a value in the `home_id` column.  This is because Postgres is attempting to create rows by matching rows in the `people` table with rows in the `locations` table, based on whether `people.home_id = locations.id`.  When it encounters a row from the `people` table where the `home_id` column is `NULL`, it can't find any rows from the `locations` table to match it with, since no rows from `locations` have an `id` column of `NULL`.  Since no matches can be found, it doesn't include that row from `people`.  We need to perform the join and then add any missing rows from `people`:
+
+```SQL
+SELECT * FROM people LEFT JOIN locations ON people.home_id = locations.id;
+```
+
+Now that we have all the people rows, we're ready to plug that into our php.  Alter the `pg_query` code in our `People::all()` function:
 
 ```php
-class Person {
-    public $id;
-    public $name;
-    public $age;
-    public function __construct($id, $name, $age, $home_id = null) {
-        $this->id = $id;
-        $this->name = $name;
-        $this->age = $age;
-        if($home_id){
-            $this->home_id = $home_id;
-        }
-    }
+$results = pg_query("SELECT * FROM people LEFT JOIN locations ON people.home_id = locations.id");
+```
+
+If you view http://localhost:8888/people, you'll see something funky.  Some people have `NULL` ids, and other rows have unexpected `id` columns.  The reason for this can be discovered by looking back in `psql` at our previous `LEFT JOIN` statement results.  You'll notice there are two `id` columns, one for the `people` table and one for `locations` table.  When PHP attempts to convert a row into an object, when it reads the `people` table's `id` column, creates an `id` property for the object.  It then goes through, adding `name`, `age`, and `home_id` properties.  It then reaches the `id` column for the `locations` table and overwrites the `id` property on the `$row_object` with the value from the `id` column of the `locations` table.
+
+To fix this, we can alter our SQL statement to rename one or both of the id columns.  Let's rename the `id` column from the `locations` table.
+
+```SQL
+SELECT
+    people.*,
+    locations.id AS location_id,
+    locations.street,
+    locations.city,   
+    locations.state   
+FROM people
+LEFT JOIN locations
+    ON people.home_id = locations.id;
+```
+
+Now if we change our SQL statement in PHP, we'll see better results:
+
+```php
+$results = pg_query("SELECT
+    people.*,
+    locations.id AS location_id,
+    locations.street,
+    locations.city,
+    locations.state
+FROM people
+LEFT JOIN locations
+    ON people.home_id = locations.id;");
+```
+
+## Give People Locations
+
+If we put a `var_dump` inside the while loop in our `People::all()` function, we can see `$row_object` now contains information about each person's location (if you're using Postman to view http://localhost:8888/people, you might need to switch to the `Raw` view).
+
+```php
+while($row_object){
+    var_dump($row_object); //print $row_object so we can see what it looks like now
+
+    $new_person = new Person(
+        $row_object->id,
+        $row_object->name,
+        $row_object->age
+    );
+    $people[] = $new_person;
+
+    $row_object = pg_fetch_object($results);
 }
 ```
 
-Now we can create a Person like we did before without a home id:
+Now lets use the additional information on `$row_object` to create Location objects and add them to `$new_person` where necessary.  First, let's include the `Location` model at the top of `models/person.php`.
 
 ```php
-$new_person = new Person(1, "Bob", 23);
+include_once __DIR__ . '/location.php';
 ```
 
-Or with it:
+Now, inside the `People::all()` `while` loop, we'll add the logic to create a location and add it to `$new_person`:
 
 ```php
-$new_person = new Person(1, "Bob", 23, 7);
+$new_person = new Person(
+    $row_object->id,
+    $row_object->name,
+    $row_object->age
+);
+
+if($row_object->location_id){ //test if location_id is truthy
+    $new_location = new Location( //create a location from the row data
+        intval($row_object->location_id),
+        $row_object->street,
+        $row_object->city,
+        $row_object->state
+    );
+    $new_person->home = $new_location; //attach $new_location to $new_person->home
+}
+
+$people[] = $new_person;
+
+$row_object = pg_fetch_object($results);
 ```
 
-If no 4th parameter is specified in `new Person`, `$home_id` in the constructor will be `null`, and the `if` statement will not run.  If it is specified, then the `if` statement will run and set `$this->home_id`.
+Here we test to see if `$row_object->location_id` is truthy.  If it has a value -- a string representation of the id column of `locations` table -- then the block of code belonging to the `if` statement will run, creating `$new_location` and attaching it to the `home` property of `$new_person`.
