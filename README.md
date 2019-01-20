@@ -24,6 +24,7 @@
 #### Lab/HW ideas
 
 1. Build CRUD functionality for locations (id, street, city, state)
+    - Model is `Location`, factory is `Locations`
 
 ### Day 3
 
