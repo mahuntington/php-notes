@@ -24,3 +24,11 @@
 #### Lab/HW ideas
 
 1. Build CRUD functionality for locations (id, street, city, state)
+
+### Day 3
+
+#### Lecutres
+
+1. [Nested Models](Nested_Models.md)
+
+#### Lab/HW ideas
