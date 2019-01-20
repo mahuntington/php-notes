@@ -12,7 +12,7 @@
 #### Lab/HW ideas
 
 1. Test syntax knowledge
-1. Mimic Find/All with nested objects
+1. Mimic Find/All with 2D arrays and nested objects
 
 ### Day 2
 
