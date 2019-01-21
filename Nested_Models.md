@@ -109,7 +109,7 @@ LEFT JOIN locations
     ON people.home_id = locations.id;");
 ```
 
-## Give People Locations
+## Give People Homes
 
 If we put a `var_dump` inside the while loop in our `People::all()` function, we can see `$row_object` now contains information about each person's location (if you're using Postman to view http://localhost:8888/people, you might need to switch to the `Raw` view).
 
@@ -159,3 +159,198 @@ $row_object = pg_fetch_object($results);
 ```
 
 Here we test to see if `$row_object->location_id` is truthy.  If it has a value -- a string representation of the id column of `locations` table -- then the block of code belonging to the `if` statement will run, creating `$new_location` and attaching it to the `home` property of `$new_person`.
+
+## Give Locations Inhabitants
+
+Again, let's start with some SQL to get all of our locations, with their respective inhabitants:
+
+```SQL
+SELECT * FROM locations JOIN people ON locations.id = people.home_id;
+```
+
+But this only gets the locations that have people associated with them.  If there aren't any rows in the `people` table that have the `home_id` column set to the `id` of a specific row in the `locations` table, then the row won't show up.  It's the same issue we had previously with some of the rows in the `people` column not showing up because they didn't have a `home_id`.  We need to perform the join like normal, and then add in any missing `location` rows:
+
+```SQL
+SELECT * FROM locations LEFT JOIN people ON locations.id = people.home_id;
+```
+
+Now we have any missing rows from the `locations` table.
+
+Currently, our `Locations:all()` should look something like this:
+
+```php
+static function all(){
+    //create an empty array
+    $locations = array();
+
+    //query the database
+    $results = pg_query("SELECT * FROM locations");
+
+    $row_object = pg_fetch_object($results);
+    while($row_object){
+
+        $new_location = new Location( //create a new location
+            $row_object->id,
+            $row_object->street,
+            $row_object->city,
+            $row_object->state
+        );
+        $locations[] = $new_location; //push new person object onto $$locations array
+
+        $row_object = pg_fetch_object($results);
+    }
+
+    return $locations;
+}
+```
+
+Let's adjust the code to include our new SQL code with the `JOIN`:
+
+
+```php
+$results = pg_query("SELECT * FROM locations LEFT JOIN people ON locations.id = people.home_id");
+```
+
+You'll notice that we now have duplicate locations whenever a `location` has more than one person associated with it.  This makes sense because we have extra rows for those locations when we perform the SQL query in `psql`.  We'll fix that soon.
+
+You'll also notice that the `id` properties for the various locations are incorrect.  This is the same problem that we encountered before when we were creating `People:all()`.  If we look at the SQL statement in `psql`, we'll notice that there are two `id` columns.  The second `id` column overwrites the values of the first one, even though the correct `id` is the first one.  Let's alias the second column:
+
+```sql
+SELECT
+    locations.*,
+    people.id AS person_id,
+    people.name,
+    people.age
+FROM locations
+LEFT JOIN people
+    ON locations.id = people.home_id;
+```
+
+We can plug this into our PHP code:
+
+```php
+$results = pg_query("SELECT
+    locations.*,
+    people.id AS person_id,
+    people.name,
+    people.age
+FROM locations
+LEFT JOIN people
+    ON locations.id = people.home_id;");
+```
+
+Now our `id` properties are correct.
+
+Next, let's deal with our duplicate locations.  Currently, our `while` loop looks like this:
+
+```php
+$row_object = pg_fetch_object($results);
+while($row_object){
+
+    $new_location = new Location(
+        $row_object->id,
+        $row_object->street,
+        $row_object->city,
+        $row_object->state
+    );
+    $locations[] = $new_location;
+
+    $row_object = pg_fetch_object($results);
+}
+```
+
+The issue here is that our SQL produces multiple rows for the same location, if it has more than one person associated with it.  This is okay, because we need multiple rows to exist in order to have data for each person associated with a given location.  What we need to do is, each time a duplicate location row is encountered, skip the process for creating the location:
+
+```php
+$row_object = pg_fetch_object($results);
+$last_location_id = null; //keep track of the last location id encountered
+while($row_object){
+
+    //if the current row's id is different from the last row's id, create a new location
+    //otherwise skip the process of creating a new location
+    if($row_object->id !== $last_location_id){
+        $new_location = new Location(
+            $row_object->id,
+            $row_object->street,
+            $row_object->city,
+            $row_object->state
+        );
+        $locations[] = $new_location;
+        $last_location_id = $row_object->id; //update the $last_location_id to be the current row's id
+    }
+
+    $row_object = pg_fetch_object($results);
+}
+```
+
+We start off by initializing a `$last_location_id` variable.  Then, each time we loop through to the next row, we check to see if the new row's id is the same as the last row's id.  If it is, we don't create a new `Location` object.
+
+With that is working, let's add people to locations when necessary.  This is similar to, but not the same as, the last section when we created `Location` objects and added them to people.  First, whenever we create a new `Person` object, we want to automatically give it an inhabitants property which is set to an array:
+
+```php
+class Location {
+    public $id;
+    public $street;
+    public $city;
+    public $state;
+    public function __construct($id, $street, $city, $state) {
+        $this->id = $id;
+        $this->street = $street;
+        $this->city = $city;
+        $this->state = $state;
+        $inhabitants = [];
+    }
+}
+```
+
+Next, update the `while` loop in `Locations::all()`:
+
+```php
+while($row_object){
+
+    if($row_object->id !== $last_location_id){
+        $new_location = new Location(
+            $row_object->id,
+            $row_object->street,
+            $row_object->city,
+            $row_object->state
+        );
+        $locations[] = $new_location;
+        $last_location_id = $row_object->id;
+    }
+
+    //test if person_id is truthy
+    if($row_object->person_id){
+        //create a person from the row data
+        $new_person = new Person(
+            intval($row_object->person_id), //turn the string into an int
+            $row_object->name,
+            $row_object->age
+        );
+
+        //add the new person as an inhabitant of the last element of the locations array
+        $locations_length = count($locations); //count() returns the # of elements in an array
+        $last_index_of_locations = $locations_length-1;
+        $most_recently_added_location = $locations[$last_index_of_locations];
+        $most_recently_added_location->inhabitants[] = $new_person;
+    }
+
+    $row_object = pg_fetch_object($results);
+}
+```
+
+This is pretty similar to when we added homes to people, except for the last section.  It finds last element in the `$locations` array and adds the `$new_person` as an inhabitant to it.
+
+If we sort our results in the SQL statement by `locations.id`, we can be assured that whenever we create a new person, even if we didn't create a location during that particular loop of the `while` statement, the last element on the `$locations` array will always be the location that needs to have an inhabitant added it it (as opposed to some other location).
+
+```php
+$results = pg_query("SELECT
+    locations.*,
+    people.id AS person_id,
+    people.name,
+    people.age
+FROM locations
+LEFT JOIN people
+    ON locations.id = people.home_id
+ORDER BY locations.id ASC");
+```
