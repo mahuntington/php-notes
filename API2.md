@@ -50,7 +50,7 @@ Now inside our `controllers/people.php` let's add an additional condition:
 
 ```php
 if($_REQUEST['action'] === 'index'){
-    echo json_encode(People::find());
+    echo json_encode(People::all());
 } else if ($_REQUEST['action'] === 'post'){
     echo '{"test":true}';
 }
@@ -68,7 +68,7 @@ The next thing we want to do is get the body of the request.  Soon, we'll extrac
 
 ```php
 if($_REQUEST['action'] === 'index'){
-    echo json_encode(People::find());
+    echo json_encode(People::all());
 } else if ($_REQUEST['action'] === 'post'){
     echo file_get_contents('php://input');
 }
@@ -80,7 +80,7 @@ Currently, `file_get_contents('php://input')` just returns a string.  Let's turn
 
 ```php
 if($_REQUEST['action'] === 'index'){
-    echo json_encode(People::find());
+    echo json_encode(People::all());
 } else if ($_REQUEST['action'] === 'post'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
@@ -93,7 +93,7 @@ Don't forget that `People::create()`, takes a `Person` object as a parameter.  L
 
 ```php
 if($_REQUEST['action'] === 'index'){
-    echo json_encode(People::find());
+    echo json_encode(People::all());
 } else if ($_REQUEST['action'] === 'post'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
@@ -105,7 +105,7 @@ Finally, we can pass `$newPerson` off to `People::create()`:
 
 ```php
 if($_REQUEST['action'] === 'index'){
-    echo json_encode(People::find());
+    echo json_encode(People::all());
 } else if ($_REQUEST['action'] === 'post'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
@@ -135,7 +135,7 @@ static function create($person){
     $query = "INSERT INTO people (name, age) VALUES ($1, $2)";
     $query_params = array($person->name, $person->age);
     pg_query_params($query, $query_params);
-    return self::find(); //find all people and return them
+    return self::all(); //find all people and return them
 }
 ```
 
@@ -143,7 +143,7 @@ Now in `controllers/people.php` send the return value of `People::create()` back
 
 ```php
 if($_REQUEST['action'] === 'index'){
-    echo json_encode(People::find());
+    echo json_encode(People::all());
 } else if ($_REQUEST['action'] === 'post'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
@@ -168,7 +168,7 @@ static function update($updatedPerson){
     $query_params = array($updatedPerson->name, $updatedPerson->age, $updatedPerson->id);
     $result = pg_query_params($query, $query_params);
 
-    return self::find();
+    return self::all();
 }
 ```
 
@@ -214,7 +214,7 @@ static function delete($id){
     $query_params = array($id);
     $result = pg_query_params($query, $query_params);
 
-    return self::find();
+    return self::all();
 }
 ```
 

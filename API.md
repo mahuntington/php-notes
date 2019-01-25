@@ -2,15 +2,15 @@
 
 ## Route URLs to php files
 
-Routing can be accomplished with a `.htaccess` file placed in your root directory for the app.  This is not PHP related.  It's actually something that is a part of Apache.  It allows the user to take requests and change them in some way, so that the server thinks the original request came in with modifications specified.  For instance you could take all requests to `/people/1` and rewrite it to `/people?id=1`.  We'll use this file to specify how our routes map to particular files.
+Routing can be accomplished with a `.htaccess` file placed in your root directory for the app.  This is not PHP related.  It's actually something that is a part of Apache.  It allows the user to take requests and change them in some way, so that the server thinks the original request came in with the modifications specified.  For instance, you could take all requests to `/people/1` and rewrite it to `/people?id=1`.  We'll use this file to specify how our routes map to particular files.
 
-First, tell Apache to allow the ability to rewrite URLs.  In `.htaccess`, add the following:
+First, tell Apache to allow the ability to rewrite URLs.  Create a `.htaccess` file and add the following:
 
 ```
 RewriteEngine On
 ```
 
-Now create a route that will map any `GET` request to `/people` to `people.php`
+Now add a route after the previous line that will map any `GET` request to `/people` to `people.php`
 
 ```
 RewriteCond %{REQUEST_METHOD} ^GET$
@@ -20,7 +20,7 @@ RewriteRule ^people$ controllers/people.php?action=index
 Let's break down the various parts of the first line of the last chunk (`RewriteCond %{REQUEST_METHOD} ^GET$`):
 
 - `RewriteCond`
-    - this specifies that a rewrite will happen given the following condition
+    - this specifies that a rewrite will happen given a following condition
 - `%{REQUEST_METHOD}`
     - this tells apache to look at the request method (GET, POST, PUT/PATCH, DELETE) and compare it to something
 - `^GET$`
@@ -43,7 +43,7 @@ Now let's break down the second line (`RewriteRule ^people$ controllers/people.p
 
 Create a `controllers` directory to hold our controller files.  Within that directory, create a `people.php` file.  This will handle all routes that pertain to people models.
 
-In this file put the following PHP code (**NOTE:** I've ommitted `<?php` and `?>` for ease of reading.  Don't forget to add each to **every** file you create from here on out):
+In this file put the following PHP code (**NOTE:** I've ommitted `<?php` and `?>` for ease of reading.  Don't forget to add each to the beginning/end of **every** file you create from here on out):
 
 ```php
 if($_REQUEST['action'] === 'index'){
@@ -55,13 +55,13 @@ Go to http://localhost:8888/people to see this in action.  Apache will look at o
 
 The PHP code we wrote looks at the `action` query parameter that our `.htaccess` file tells Apache to create.  If its value equals "index", we're going to render the text "index route" to the browser.  It does this with the `$_REQUEST` variable, which we'll look at next.
 
-Every time we use a PHP file to render something server-side, that file has access to several global variables that contain information about the request that was made.  `$_REQUEST` is an associative array that has info about the query parameters that were used in the request. To retrieve the `action` query parameter that we told Apache to create in our `.htaccess` file, we can just look at `$_REQUEST['action']`.
+Every time we use a PHP file to render something server-side, that file has access to several global variables that contain information about the request that was made.  `$_REQUEST` is an associative array that has info about the query parameters that were used in the request. To retrieve the `action` query parameter that our `.htaccess` file told Apache to create, we can just look at `$_REQUEST['action']`.
 
-Later on, when we have more routes, we'll have the `.htaccess` file set the `action` query parameter to different values depending on what the route is (e.g. show, delete, update, etc).  Then in the controller files, we'll test what that value is and use that to determine what JSON to render.  Right now we only have `index` set up in our `.htaccess` file, so our `if` statement is unnecessary, but later on in will become important.
+Later on, when we have more routes, we'll have the `.htaccess` file set the `action` query parameter to different values depending on what the route is (e.g. show, delete, update, etc).  Then in the controller files, we'll test what that value is and use that to determine what JSON to render.  Right now we only have `index` set up in our `.htaccess` file, so our `if` statement is a little unnecessary, but later on in will become important.
 
 ## Create a model file
 
-Now we're going to a create a file which will end up querying the relational database and turning that information into PHP objects.  We call that an Object Relational Mapper (ORM).  First, create a `models` directory, and inside of that create `person.php`.  Add the following code to that file, which will define the `Person` class used to create people objects:
+Now we're going to a create a file which will eventually query the relational database and turn that information into PHP objects.  We call that an Object Relational Mapper (ORM).  First, create a `models` directory, and inside of that create `person.php`.  Add the following code to that file, which will define the `Person` class used to create people objects:
 
 ```php
 class Person {
@@ -78,7 +78,7 @@ class Person {
 
 This defines the `Person` class as having three possible properties (id, name, age) which can be edited after the object has been created.
 
-Now, we're going to create a "factory" which will be responsible for generating objects from the database.  At the moment, we're just going to have to create some dummy data.  Add the following to the bottom of `models/person.php`:
+Now, we're going to create a "factory" which will eventually be responsible for generating objects from the database.  For now, we're just going to create some dummy data.  Add the following to the bottom of `models/person.php`:
 
 ```php
 class People {
@@ -104,15 +104,15 @@ class People {
 
 ## Use the people model in the controller
 
-Now that we have our `People`/`Person` model set up, we need to incorporate it into our `People` controller.  First include it into our `controllers/people.php`:
+Now that we have our `People`/`Person` model set up, we need to incorporate it into our `People` controller.  First, include it at the top of `controllers/people.php`:
 
 ```php
 include_once __DIR__ . '/../models/person.php';
 ```
 
-- `include_once` will include the file, unless it's already been included somewhere else in our app.  We could use `include`, but `include_once` keeps us from accidentally running the `models/people.php` more than once.
-- `__DIR__` just spits out the full absolute path the directory of the current file that's running that line of code
-- `/../models/person.php`: since we're currently in the `controllers` directory, we need to travel up a level to the project's root dir and then into the `models/` directory.  We then reference the `person.php` file in that directory
+- `include_once` will include the file, unless it's already been included somewhere else in our app.  We could use `include`, but `include_once` keeps us from accidentally running `models/people.php` more than once.
+- `__DIR__` just spits out the full absolute path to the current file that's running that line of code
+- `/../models/person.php`: since we're currently in the `controllers` directory, we need to travel up to the parent directory of the `controllers` directory (the project's root dir) and then into the `models/` directory.  We then reference the `person.php` file in that directory
 
 Now that we wrote that code, we have our `Person` and `People` classes available to us.  Let's replace
 
@@ -131,7 +131,7 @@ This will render the results of `People::all()` (an array of Person objects) as 
 
 ## Add a Content-Type header
 
-Most JavaScript libraries/frameworks that deal with AJAX (e.g. Angular, Axios, fetch, etc) expect a special header to be set in all AJAX responses, telling the requesting client what kind of data is being sent back.  Let's add this to the top of `controllers/people.php`:
+Most JavaScript libraries/frameworks that deal with AJAX (e.g. Angular, Axios, fetch, jQuery, etc) expect a special header to be set in all AJAX responses, telling the requesting client what kind of data is being sent back.  Let's add this to the top of `controllers/people.php`:
 
 ```php
 header('Content-Type: application/json');
@@ -178,14 +178,14 @@ CREATE TABLE people (id SERIAL, name VARCHAR(16), age INT);
 Let's insert some people:
 
 ```sql
-INSERT INTO users ( name, age ) VALUES ( 'Matt', 38 );
-INSERT INTO users ( name, age ) VALUES ( 'Sally', 54 );
-INSERT INTO users ( name, age ) VALUES ( 'Zanthar', 4892 );
+INSERT INTO people ( name, age ) VALUES ( 'Matt', 38 );
+INSERT INTO people ( name, age ) VALUES ( 'Sally', 54 );
+INSERT INTO people ( name, age ) VALUES ( 'Zanthar', 4892 );
 ```
 
 ## Connect the People model to Postgres
 
-Currently, our `People` model's `all` function randomly generates three `Person` objects when invoked.  Let's have it connect to `postgres` so that it can use the rows we inserted into the `people` table to create the `Person` objects.  At the top of `models/person.php` add the following:
+Currently, our `People` model's `all` function arbitrarily generates three `Person` objects when invoked.  Let's have it connect to `postgres` so that it can use the rows we inserted into the `people` table to create the `Person` objects.  At the top of `models/person.php` add the following:
 
 ```php
 $dbconn = pg_connect("host=localhost dbname=contacts");
