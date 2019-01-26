@@ -97,11 +97,11 @@ if($_REQUEST['action'] === 'index'){
 } else if ($_REQUEST['action'] === 'post'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
-    $newPerson = new Person(null, $body_object->name, $body_object->age); //create a new Person from $body_object
+    $new_person = new Person(null, $body_object->name, $body_object->age); //create a new Person from $body_object
 }
 ```
 
-Finally, we can pass `$newPerson` off to `People::create()`:
+Finally, we can pass `$new_person` off to `People::create()`:
 
 ```php
 if($_REQUEST['action'] === 'index'){
@@ -109,8 +109,8 @@ if($_REQUEST['action'] === 'index'){
 } else if ($_REQUEST['action'] === 'post'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
-    $newPerson = new Person(null, $body_object->name, $body_object->age);
-    People::create($newPerson); //pass $newPerson off to People, so it can add the data to the db
+    $new_person = new Person(null, $body_object->name, $body_object->age);
+    People::create($new_person); //pass $new_person off to People, so it can add the data to the db
     echo '{"worked":true}'; //return a success message
 }
 ```
@@ -151,11 +151,11 @@ if($_REQUEST['action'] === 'index'){
 } else if ($_REQUEST['action'] === 'post'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
-    $newPerson = new Person(null, $body_object->name, $body_object->age);
-    $allPeople = People::create($newPerson); //store the return value of People::create into a var
+    $new_person = new Person(null, $body_object->name, $body_object->age);
+    $all_people = People::create($new_person); //store the return value of People::create into a var
 
     //send the return value of People::create (all people in the db) back to the user
-    echo json_encode($allPeople);
+    echo json_encode($all_people);
 }
 ```
 
@@ -168,9 +168,9 @@ Now when you create a new person in Postman, you should get back all the People 
 We're going to do the same as with `People::create()`, but with some minor changes.  Add the following to the `People` model in `models/person.php`:
 
 ```php
-static function update($updatedPerson){
+static function update($updated_person){
     $query = "UPDATE people SET name = $1, age = $2 WHERE id = $3";
-    $query_params = array($updatedPerson->name, $updatedPerson->age, $updatedPerson->id);
+    $query_params = array($updated_person->name, $updated_person->age, $updated_person->id);
     $result = pg_query_params($query, $query_params);
 
     return self::all();
@@ -198,16 +198,16 @@ Now let's update `controllers/people.php` to handle these requests.  Add the fol
 } else if ($_REQUEST['action'] === 'update'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
-    $updatedPerson = new Person($_REQUEST['id'], $body_object->name, $body_object->age);
-    $allPeople = People::update($updatedPerson);
+    $updated_person = new Person($_REQUEST['id'], $body_object->name, $body_object->age);
+    $all_people = People::update($updated_person);
 
-    echo json_encode($allPeople);
+    echo json_encode($all_people);
 }
 ```
 
 This is very similar to the create action.  The only real difference is that we use `$_REQUEST['id']` to fetch the id of the person to be updated from the URL of the route.  Everything else for the new `Person` object comes from the request body as normal.
 
-Note that we're not actually creating a new `Person` object in the database, even though we have `$updatedPerson = new Person($_REQUEST['id'], $body_object->name, $body_object->age);`.  Here, `$updatedPerson` is a new PHP object that resides in the computer's temporary memory, not in the DB.  We're temporarily creating this PHP object so that we can pass it to `People::update()`, which will then use the properties of that PHP object to update an already pre-existing row in Postgres.  Once we exit from the `else if` statement, `$updatedPerson` is destroyed in memory, since it is no longer needed.
+Note that we're not actually creating a new `Person` object in the database, even though we have `$updated_person = new Person($_REQUEST['id'], $body_object->name, $body_object->age);`.  Here, `$updated_person` is a new PHP object that resides in the computer's temporary memory, not in the DB.  We're temporarily creating this PHP object so that we can pass it to `People::update()`, which will then use the properties of that PHP object to update an already pre-existing row in Postgres.  Once we exit from the `else if` statement, `$updated_person` is destroyed in memory, since it is no longer needed.
 
 ## Delete
 
@@ -242,8 +242,8 @@ Now let's update `controllers/people.php` to handle these requests.  Add the fol
 
 ```php
 } else if ($_REQUEST['action'] === 'delete'){
-    $allPeople = People::delete($_REQUEST['id']);
-    echo json_encode($allPeople);
+    $all_people = People::delete($_REQUEST['id']);
+    echo json_encode($all_people);
 }
 ```
 
