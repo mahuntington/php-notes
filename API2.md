@@ -19,7 +19,7 @@ To add these dynamic parameters, we'll need to create an array that has the valu
 ```php
 static function create($person){
     $query = "INSERT INTO people (name, age) VALUES ($1, $2)";
-    $query_params = array($person->name, $person->age);
+    $query_params = array($person->name, $person->age); //add this array
 }
 ```
 
@@ -29,7 +29,7 @@ Lastly, let's combine the SQL `$query` statement and the params:
 static function create($person){
     $query = "INSERT INTO people (name, age) VALUES ($1, $2)";
     $query_params = array($person->name, $person->age);
-    pg_query_params($query, $query_params);
+    pg_query_params($query, $query_params); //pass the query and the params to pg_query_params
 }
 ```
 
@@ -51,8 +51,8 @@ Now inside our `controllers/people.php` let's add an additional condition:
 ```php
 if($_REQUEST['action'] === 'index'){
     echo json_encode(People::all());
-} else if ($_REQUEST['action'] === 'post'){
-    echo '{"test":true}';
+} else if ($_REQUEST['action'] === 'post'){ //add this for post requests
+    echo '{"test":true}'; //send back a test message
 }
 ```
 
@@ -70,7 +70,7 @@ The next thing we want to do is get the body of the request.  Soon, we'll extrac
 if($_REQUEST['action'] === 'index'){
     echo json_encode(People::all());
 } else if ($_REQUEST['action'] === 'post'){
-    echo file_get_contents('php://input');
+    echo file_get_contents('php://input'); //get the request body
 }
 ```
 
@@ -83,11 +83,11 @@ if($_REQUEST['action'] === 'index'){
     echo json_encode(People::all());
 } else if ($_REQUEST['action'] === 'post'){
     $request_body = file_get_contents('php://input');
-    $body_object = json_decode($request_body);
+    $body_object = json_decode($request_body); //change the request body from a JSON string into a PHP object
 }
 ```
 
-`json_decode()` will take the `$request_body` string and convert it into an object
+`json_decode()` will take the `$request_body` JSON string and convert it into an object
 
 Don't forget that `People::create()`, takes a `Person` object as a parameter.  Let's create a `Person` object from the `$body_object`:
 
@@ -97,7 +97,7 @@ if($_REQUEST['action'] === 'index'){
 } else if ($_REQUEST['action'] === 'post'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
-    $newPerson = new Person(null, $body_object->name, $body_object->age);
+    $newPerson = new Person(null, $body_object->name, $body_object->age); //create a new Person from $body_object
 }
 ```
 
@@ -110,8 +110,8 @@ if($_REQUEST['action'] === 'index'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
     $newPerson = new Person(null, $body_object->name, $body_object->age);
-    People::create($newPerson);
-    return '{"worked":true}';
+    People::create($newPerson); //pass $newPerson off to People, so it can add the data to the db
+    echo '{"worked":true}'; //return a success message
 }
 ```
 
@@ -126,9 +126,13 @@ Now, go to Postman and make a POST request to http://localhost:8888/people with 
 
 Check in `psql` to see if the person was created.
 
+```SQL
+SELECT * FROM people;
+```
+
 ### Return data to the user
 
-Currently, nothing comes back to the user after they create a new person.  Let's change this to show all the users currently in the DB.  Add the following to `models/person.php` for the `create()` method:
+Currently, nothing helpful comes back to the user after they create a new person.  Let's change this to show all the users currently in the DB.  Add the following to `models/person.php` for the `create()` method:
 
 ```php
 static function create($person){
@@ -148,8 +152,9 @@ if($_REQUEST['action'] === 'index'){
     $request_body = file_get_contents('php://input');
     $body_object = json_decode($request_body);
     $newPerson = new Person(null, $body_object->name, $body_object->age);
-    $allPeople = People::create($newPerson);
+    $allPeople = People::create($newPerson); //store the return value of People::create into a var
 
+    //send the return value of People::create (all people in the db) back to the user
     echo json_encode($allPeople);
 }
 ```
@@ -164,7 +169,7 @@ We're going to do the same as with `People::create()`, but with some minor chang
 
 ```php
 static function update($updatedPerson){
-    $query = "UPDATE people SET name = $1, age = $2, WHERE id = $3";
+    $query = "UPDATE people SET name = $1, age = $2 WHERE id = $3";
     $query_params = array($updatedPerson->name, $updatedPerson->age, $updatedPerson->id);
     $result = pg_query_params($query, $query_params);
 
@@ -185,9 +190,9 @@ RewriteRule ^people/([0-9]+)$ controllers/people.php?action=update&id=$1
 
 The first difference you'll see is `([0-9]+)`.  This is just more regex work.  It basically means any integer.  If you're interested in learning more about how this works, check out [these tutorials on regex](https://www.regular-expressions.info/tutorial.html).  What it allows us to do is have a route for urls like `people/123`, `people/5`, or `people/2347346`, etc.
 
-One that same line second line of the route, you'll notice `&id=$1` at the end of the rule.  This adds a second query parameter to `controllers/people.php` called `id` and sets it to whatever is inside the `()` of `^people/([0-9]+)$`.  In other words, if the URL is `people/2347346`.  The id query param will be 2347346.
+On that same second line of the route, you'll notice `&id=$1` at the end of the rule.  This adds a second query parameter to `controllers/people.php` called `id` and sets it to whatever is inside the `()` of `^people/([0-9]+)$`.  In other words, if the URL is `people/2347346`.  The `id` query param will be 2347346.
 
-Now let's update `controllers/people.php` to handle these requests.  Add the following:
+Now let's update `controllers/people.php` to handle these requests.  Add the following at the end of your `if/else` section (note you'll have to remove an extra `}`):
 
 ```php
 } else if ($_REQUEST['action'] === 'update'){
@@ -201,6 +206,8 @@ Now let's update `controllers/people.php` to handle these requests.  Add the fol
 ```
 
 This is very similar to the create action.  The only real difference is that we use `$_REQUEST['id']` to fetch the id of the person to be updated from the URL of the route.  Everything else for the new `Person` object comes from the request body as normal.
+
+Note that we're not actually creating a new `Person` object in the database, even though we have `$updatedPerson = new Person($_REQUEST['id'], $body_object->name, $body_object->age);`.  Here, `$updatedPerson` is a new PHP object that resides in the computer's temporary memory, not in the DB.  We're temporarily creating this PHP object so that we can pass it to `People::update()`, which will then use the properties of that PHP object to update an already pre-existing row in Postgres.  Once we exit from the `else if` statement, `$updatedPerson` is destroyed in memory, since it is no longer needed.
 
 ## Delete
 
@@ -218,7 +225,7 @@ static function delete($id){
 }
 ```
 
-Note that the `$id` is just going to be an integer that we pass into `People:delete()`.  Even if we only have one query param, we still need to put it in an array.
+Note that the `$id` is just going to be an integer that we pass into `People:delete()`.  In previous examples, it was an entire `Person` object, but we don't need that here.  Just the id of the person to be deleted.  Also, note that even if we only have one query param, we still need to put it in an array.
 
 ### Hook the controller up with the model
 
@@ -231,7 +238,7 @@ RewriteRule ^people/([0-9]+)$ controllers/people.php?action=delete&id=$1
 
 This is similar to update, but with the request method being DELETE and the `action` query param set to `delete`.
 
-Now let's update `controllers/people.php` to handle these requests.  Add the following:
+Now let's update `controllers/people.php` to handle these requests.  Add the following at the end of your `if/else` block (removing the extra `}` again):
 
 ```php
 } else if ($_REQUEST['action'] === 'delete'){
