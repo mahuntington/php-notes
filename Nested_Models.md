@@ -41,7 +41,7 @@ Also, when we have a location, it will contain an array of people objects:
 }
 ```
 
-This will be a one-to-many relationship
+This will be a one-to-many relationship.
 
 ## Add home_id to people
 
@@ -79,7 +79,7 @@ Now that we have all the people rows, we're ready to plug that into our php.  Al
 $results = pg_query("SELECT * FROM people LEFT JOIN locations ON people.home_id = locations.id");
 ```
 
-If you view http://localhost:8888/people, you'll see something funky.  Some people have `NULL` ids, and other rows have unexpected `id` columns.  The reason for this can be discovered by looking back in `psql` at our previous `LEFT JOIN` statement results.  You'll notice there are two `id` columns, one for the `people` table and one for `locations` table.  When PHP attempts to convert a row into an object, when it reads the `people` table's `id` column, creates an `id` property for the object.  It then goes through, adding `name`, `age`, and `home_id` properties.  It then reaches the `id` column for the `locations` table and overwrites the `id` property on the `$row_object` with the value from the `id` column of the `locations` table.
+If you view http://localhost:8888/people, you'll see something funky.  Some people have 0 ids, and other rows have unexpected `id` columns.  The reason for this can be discovered by looking back in `psql` at our previous `LEFT JOIN` statement results.  You'll notice there are two `id` columns, one for the `people` table and one for `locations` table.  When PHP attempts to convert a row into an object, it reads the `people` table's `id` column and creates an `id` property for the object.  It then goes through, adding `name`, `age`, and `home_id` properties.  It then reaches the `id` column for the `locations` table and overwrites the `id` property on the `$row_object` with the value from the `id` column of the `locations` table.
 
 To fix this, we can alter our SQL statement to rename one or both of the id columns.  Let's rename the `id` column from the `locations` table.
 
@@ -137,28 +137,30 @@ include_once __DIR__ . '/location.php';
 Now, inside the `People::all()` `while` loop, we'll add the logic to create a location and add it to `$new_person`:
 
 ```php
-$new_person = new Person(
-    $row_object->id,
-    $row_object->name,
-    $row_object->age
-);
-
-if($row_object->location_id){ //test if location_id is truthy
-    $new_location = new Location( //create a location from the row data
-        intval($row_object->location_id), //turn the string into an int
-        $row_object->street,
-        $row_object->city,
-        $row_object->state
+while($row_object){
+    $new_person = new Person(
+        $row_object->id,
+        $row_object->name,
+        $row_object->age
     );
-    $new_person->home = $new_location; //attach $new_location to $new_person->home
+
+    if($row_object->location_id){ //test if location_id is truthy
+        $new_location = new Location( //create a location from the row data
+            intval($row_object->location_id), //turn the string into an int
+            $row_object->street,
+            $row_object->city,
+            $row_object->state
+        );
+        $new_person->home = $new_location; //attach $new_location to $new_person->home
+    }
+
+    $people[] = $new_person;
+
+    $row_object = pg_fetch_object($results);
 }
-
-$people[] = $new_person;
-
-$row_object = pg_fetch_object($results);
 ```
 
-Here we test to see if `$row_object->location_id` is truthy.  If it has a value -- a string representation of the id column of `locations` table -- then the block of code belonging to the `if` statement will run, creating `$new_location` and attaching it to the `home` property of `$new_person`.
+Here we test to see if `$row_object->location_id` is truthy.  If it has a value -- a string representation of the id column of the `locations` table -- then the block of code belonging to the `if` statement will run, creating `$new_location` and attaching it to the `home` property of `$new_person`.
 
 ## Give Locations Inhabitants
 
@@ -174,7 +176,7 @@ But this only gets the locations that have people associated with them.  If ther
 SELECT * FROM locations LEFT JOIN people ON locations.id = people.home_id;
 ```
 
-Now we have any missing rows from the `locations` table.
+Now we have the additional missing rows from the `locations` table.
 
 Currently, our `Locations:all()` should look something like this:
 
@@ -211,7 +213,7 @@ Let's adjust the code to include our new SQL code with the `JOIN`:
 $results = pg_query("SELECT * FROM locations LEFT JOIN people ON locations.id = people.home_id");
 ```
 
-You'll notice that we now have duplicate locations whenever a `location` has more than one person associated with it.  This makes sense because we have extra rows for those locations when we perform the SQL query in `psql`.  We'll fix that soon.
+If you visit http://localhost:8888/locations, you'll notice that we now have duplicate locations whenever a `location` has more than one person associated with it.  This makes sense because we have extra rows for those locations when we perform the SQL query in `psql`.  We'll fix that soon.
 
 You'll also notice that the `id` properties for the various locations are incorrect.  This is the same problem that we encountered before when we were creating `People:all()`.  If we look at the SQL statement in `psql`, we'll notice that there are two `id` columns.  The second `id` column overwrites the values of the first one, even though the correct `id` is the first one.  Let's alias the second column:
 
@@ -285,7 +287,7 @@ while($row_object){
 
 We start off by initializing a `$last_location_id` variable.  Then, each time we loop through to the next row, we check to see if the new row's id is the same as the last row's id.  If it is, we don't create a new `Location` object.
 
-With that is working, let's add people to locations when necessary.  This is similar to, but not the same as, the last section when we created `Location` objects and added them to people.  First, whenever we create a new `Person` object, we want to automatically give it an inhabitants property which is set to an array:
+With that working, let's add people to locations when necessary.  This is similar to, but not the same as, the last section when we created `Location` objects and added them to people.  First, whenever we create a new `Location` object, we want to automatically give it an inhabitants property which is set to an array:
 
 ```php
 class Location {
@@ -298,9 +300,15 @@ class Location {
         $this->street = $street;
         $this->city = $city;
         $this->state = $state;
-        $inhabitants = [];
+        $this->inhabitants = [];
     }
 }
+```
+
+Now include the `People` model at the top of `models/location.php`:
+
+```php
+include_once __DIR__ . '/person.php';
 ```
 
 Next, update the `while` loop in `Locations::all()`:
@@ -341,7 +349,7 @@ while($row_object){
 
 This is pretty similar to when we added homes to people, except for the last section.  It finds last element in the `$locations` array and adds the `$new_person` as an inhabitant to it.
 
-If we sort our results in the SQL statement by `locations.id`, we can be assured that whenever we create a new person, even if we didn't create a location during that particular loop of the `while` statement, the last element on the `$locations` array will always be the location that needs to have an inhabitant added it it (as opposed to some other location).
+If we sort our results in the SQL statement by `locations.id`, we can be assured that whenever we create a new `Person` object, even if we didn't create a location during that particular loop of the `while` statement, the last element on the `$locations` array will always be the location that needs to have an inhabitant added it it (as opposed to some other location).
 
 ```php
 $results = pg_query("SELECT
