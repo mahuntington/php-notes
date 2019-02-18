@@ -35,5 +35,5 @@
 #### Lab/HW ideas
 
 1. Implement find for both `/people/:id` and `/locations/:id`
-1. Stretch: imlement an many-to-many relation with a `Companies` model
+1. Stretch: implement an many-to-many relation with a `Companies` model
     - use a `jobs` intermediary table
