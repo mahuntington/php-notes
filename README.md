@@ -21,6 +21,6 @@
 ### Day 3
 
 1. Morning Lecture: [Nested Models](day3/instructor_notes/Nested_Models.md)
-1. Morning Lab: Implement Find for Both `/people/:id` and `/locations/:id` with Nested Models
-1. Afternoon Lab (no lecture): Implement a Many-to-Many Relationship with a `Companies` Model
-1. Homework: Finish Lab
+1. Morning Lab: [Implement Find for Both `/people/:id` and `/locations/:id` with Nested Models](day3/student_labs/morning.md)
+1. Afternoon Lab (no lecture): [Implement a Many-to-Many Relationship with a `Companies` Model](day3/student_labs/afternoon.md)
+1. Homework: [Finish Lab](day3/homework/README.md)
