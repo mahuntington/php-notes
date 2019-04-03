@@ -19,7 +19,7 @@
 1. Homework: Finish with labs
     - Stretch: Implement find for `/people/:id`, `/locations/:id`, and `/companies/:id`
 <!-- 1. Build CRUD functionality for locations (id, street, city, state) -->
-    <!-- - Model is `Location`, factory is `Locations` -->
+<!-- - Model is `Location`, factory is `Locations` -->
 
 ### Day 3
 
