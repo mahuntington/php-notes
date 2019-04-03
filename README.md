@@ -13,11 +13,10 @@
 ### Day 2
 
 1. Morning Lecture: [PHP/Postgres API - READ](day2/instructor_notes/API.md)
-1. Morning Lab: Update Lecture Code with READ for Locations and Companies
+1. Morning Lab: [Update Lecture Code with READ for Locations and Companies](day2/student_labs/morning.md)
 1. Afternoon Lecture: [PHP/Postgres API - CREATE, UPDATE, DELETE](day2/instructor_notes/API2.md)
-1. Afternoon Lab: Update Lecture Code with CREATE, UPDATE, DELETE on Locations and Companies
-1. Homework: Finish with Labs
-    - Stretch: Implement Find for `/people/:id`, `/locations/:id`, and `/companies/:id`
+1. Afternoon Lab: [Update Lecture Code with CREATE, UPDATE, DELETE on Locations and Companies](day2/student_labs/afternoon.md)
+1. Homework: [Finish with Labs](day2/homework/README.md)
 
 ### Day 3
 
