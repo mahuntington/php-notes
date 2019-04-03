@@ -4,17 +4,17 @@
 
 ### Day 1
 
-1. Morning Lecture: [Intro to PHP](day1/instructor_notes)
+1. Morning Lecture: [Intro to PHP](day1/instructor_notes/1.%20PHP1.md)
 1. Morning Lab: Recreate Landscaper
-1. Afternoon Lecture: [Intro to PHP 2](day1/instructor_notes/2. PHP2.md)
+1. Afternoon Lecture: [Intro to PHP 2](day1/instructor_notes/2.%20PHP2.md)
 1. Afternoon Lab: Continue with Recreate Landscaper
 1. Homework: Mimic Find/All with 2D arrays and nested objects
 
 ### Day 2
 
-1. Morning Lecture: [PHP/Postgres API - READ](day2/instructor_notes/1. API.md)
+1. Morning Lecture: [PHP/Postgres API - READ](day2/instructor_notes/1.%20API.md)
 1. Morning Lab: Update Lecture Code with READ for locations and companies
-1. Afternoon Lecture: [PHP/Postgres API - CREATE, UPDATE, DELETE](day2/instructor_notes/2. API2.md)
+1. Afternoon Lecture: [PHP/Postgres API - CREATE, UPDATE, DELETE](day2/instructor_notes/2.%20API2.md)
 1. Afternoon Lab: Update Lecture Code with CREATE, UPDATE, DELETE on locations and companies
 1. Homework: Finish with labs
     - Stretch: Implement find for `/people/:id`, `/locations/:id`, and `/companies/:id`
@@ -23,7 +23,7 @@
 
 ### Day 3
 
-1. Morning Lecture: [Nested Models](day3/instructor_notes/1. Nested_Models.md)
+1. Morning Lecture: [Nested Models](day3/instructor_notes/1.%20Nested_Models.md)
 1. Morning Lab: Implement find for both `/people/:id` and `/locations/:id` with nested models
 1. Afternoon Lab (no lecture): Implement a many-to-many relation with a `Companies` model
     - use a `jobs` intermediary table
