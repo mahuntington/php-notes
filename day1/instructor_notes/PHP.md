@@ -375,3 +375,15 @@ Alternative syntax:
 	<?= $key ?>: <?=$value?> <br/>
 <?php endforeach ?>
 ```
+
+## Functions
+
+```php
+<?php
+function greet($name) {
+    echo "Hello $name";
+}
+
+writeMsg("Matt"); // call the function
+?>
+```
