@@ -4,7 +4,7 @@
 
 ### Day 1
 
-1. Morning Lecture: [Intro to PHP](day1/instructor_notes/PHP1.md)
+1. Morning Lecture: [Intro to PHP](day1/instructor_notes/PHP.md)
 1. Morning Lab: Recreate Landscaper
 1. Afternoon Lecture: [Intro to PHP 2](day1/instructor_notes/PHP2.md)
 1. Afternoon Lab: Continue with Recreate Landscaper
