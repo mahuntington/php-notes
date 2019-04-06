@@ -40,4 +40,4 @@ if($response === "eat"){
 
 Note the `\n` that's used to add a new line in the terminal
 
-## In case you forgot how the landscaper should run:
+In case you forgot how the landscaper should run, here's a [modified version of the original markdown](landscaper.md)
