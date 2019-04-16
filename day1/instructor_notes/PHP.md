@@ -384,6 +384,6 @@ function greet($name) {
     echo "Hello $name";
 }
 
-writeMsg("Matt"); // call the function
+greet("Matt"); // call the function
 ?>
 ```
