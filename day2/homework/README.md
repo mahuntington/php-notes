@@ -2,7 +2,9 @@
 
 Finish [today's labs](../student_labs/)
 
-As a stretch, once the labs are complete, implement a show route (`find()`) for People (`/people/:id`),  Locations (`/locations/:id`),  Companies (`/companies/:id`).  Each route should return JSON to the client for only the specified person, location, or company in the DB.  For example, a call to `/locations/1` would return something like:
+## Stretch
+
+Once the labs are complete, implement a show route (`find()`) for People (`/people/:id`),  Locations (`/locations/:id`),  Companies (`/companies/:id`).  Each route should return JSON to the client for only the specified person, location, or company in the DB.  For example, a call to `/locations/1` would return something like:
 
 ```JSON
 {
@@ -37,3 +39,7 @@ This is different from the index route we wrote in lecture which returns all spe
     }
 ]
 ```
+
+## Super Stretch
+
+Add an angular front end.  Just drop your files wherever and reference them normally.  For instance if you had `index.html` in the root of the project, you can get to it via http://localhost:8888/index.html  `app.js` would be `http://localhost:8888/app.js`.
