@@ -2,18 +2,18 @@
 
 # HELLO - Start Building Your Own ORM
 
-Use ruby to reshape the kinds of objects coming from a SQL database (via a gem called PG)
+Use PHP to reshape the kinds of objects coming from a SQL database
 
 #### Learning Objectives
 
-- Learn about the challenges with converting SQL (rows and tables into JSON)
-- Practice using ruby to reshape objects
+- Learn about the challenges of converting SQL rows into JSON
+- Practice using PHP to reshape objects
 - etc.
 
 #### Prerequisites
 
 - Experience with RESTful routes
-- Basic Ruby
+- Basic PHP
 - Familiarity with JSON
 - Familiarity with SQL
 
@@ -21,12 +21,13 @@ Use ruby to reshape the kinds of objects coming from a SQL database (via a gem c
 
 ## Getting Started
 
-1. You'll be working in one ruby file, and building out your answers as you work through this hw.
+1. You'll be working in one PHP file, and building out your answers as you work through this hw.
 
 
 ## Deliverables
 
 ## Technical Requirements
+
 1. Must run without syntax errors (comment out code that doesn't work and add comments)
 2. Must complete parts 1 - 6
 
@@ -51,60 +52,65 @@ Your first task is to help build a tenant tracker.
 
 ## Part 1 - explanation
 
-SQL stores data in rows and columns, so in order to get the data to display on a web page, we need to convert the data from rows and columns into hashes with keys and values.  We can use the ruby gem PG to query Postgres and give us back an array of hashes(objects) that represents the rows and columns of the DB.
+SQL stores data in rows and columns, so in order to get the data to display on a web page, we need to convert the data from rows and columns into associative arrays with keys and values.  Fortunately, PHP does this for us, but we need to do some manual coding to get it to work exactly as we want it to.
 
 If we just have one table with the following keys and values:
 
-| name | age |
-|:-:|:-:|
-| Chase| 30|
+| name | age | home_id |
+|:-:|:-:|:-:|
+| Chase | 30 | 1 |
 
-PG will turn this into the following:
+PHP can turn this into an associative array which would look something like this:
 
-```ruby
+```php
 [
-    {
+    [
         "name" => "Chase",
-        "age" => "30"
-    }
+        "age" => "30",
+        "home_id" => "1"
+    ]
 ]
 ```
+
+Remember, that PHP doesn't allow us to spontaneously create an object with any arbitrary properties that we want like JavaScript does.  We can use associative in this manner, though.  It's a good way to keep track of a data structure that requires key/value pairs.
 
 If we had more than one person...
 
-| name | age |
-|:-:|:-:|
-| Chase | 30 |
-| Gert | 23 |
+| name | age | home_id |
+|:-:|:-:|:-:|
+| Chase | 30 | 1 |
+| Gert | 23 | 1 |
 
-PG will give us:
+PHP will give us something like this:
 
-```ruby
+```php
 [
-    {
+    [
         "name" => "Chase",
-        "age" => "30"
-    },
-    {
+        "age" => "30",
+        "home_id" => "1"
+    ],
+    [
         "name" => "Gert",
-        "age" => "23"
-    }
+        "age" => "23",
+        "home_id" => "1"
+    ]
 ]
 ```
 
-This is straightforward. However, we start to get a few wrinkles once we start joining tables. In this homework's situation, our location HAS MANY people (and each person HAS ONE location). This is also called a `ONE to MANY` relationship.  If we were to join Chase's info with his location's info, our table would look like the following:
+This is straightforward. However, we start to get a few wrinkles once we start joining tables. In this homework's situation, our location HAS MANY people (and each person HAS ONE location). This is also called a `ONE to MANY` relationship.  If we were to join Chase's info with his location's info, our table could look like the following:
 
 | name | age | home_id | home_street | home_city | home_state | home_zip_code |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | Chase | 30 | 1 | "1600 Broadway" | "New York" | "NY" | 10019 |
 
-PG would give us just one blob:
+PHP would turn this all this info into just one associative array:
 
 **Original Format**
 
-```ruby
+```php
 [
-    {
+    [
         "name"=>"Chase",
         "age"=>"30",
         "home_id"=>"1",
@@ -112,27 +118,29 @@ PG would give us just one blob:
         "home_city"=>"New York",
         "home_state"=>"NY",
         "home_zip_code"=>"10019"
-    }
+    ]
 ]
 ```
 
-But what we really want is to change the shape of the data and have `home` as a nested object. We'd also want to convert our numbers back into numbers from strings:
+But what we really want is to change the shape of the data and have `home` as a nested associative array. We'd also want to convert our numbers back into numbers from strings:
 
 **New Format**
 
-```ruby
-{
+```php
+[
     "name"=>"Chase",
     "age"=>30,
-    "home"=> {
-      "id"=> 1,
-      "street"=>"1600 Broadway",
-      "city"=>"New York",
-      "state"=>"NY",
-      "zip_code"=> 10019
-    }
-}
+    "home"=> [
+        "id"=> 1,
+        "street"=>"1600 Broadway",
+        "city"=>"New York",
+        "state"=>"NY",
+        "zip_code"=> 10019
+    ]
+]
 ```
+
+This might seem relatively minor, but it makes more sense to store the data this way.  It's much more representative of the real world.
 
 ## Part 2 - code along
 
