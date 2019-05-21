@@ -144,18 +144,19 @@ This might seem relatively minor, but it makes more sense to store the data this
 
 ## Part 2 - code along
 
-First, let's define a new method `data_transform`. It will take a single hash inside of an array called `person_array`:
+First, let's define a new function `dataTransform`. It will take a single associative array inside of an indexed array called `person_array`:
 
-```rb
-def data_transform(person_array)
-end
+```php
+function dataTransform($person_array){
+
+}
 ```
 
-Now let's create a fake `people` array, containing a single hash.  This will represent what the PG gem will give us from Postgres when we use it in rails.  Next, call `data_transform` and pass that fake `people` array in as a parameter:
+Now let's create a fake `$people` array, containing a single associative array that represents one person.  This `$people` array is similar to what PHP will give us after it retrieves data from Postgres.  In reality, the `$people` array would contain multiple people (associative arrays), but for now let's just put one in.  Next, call `dataTransform` and pass that "fake" `$people` array in as a parameter:
 
-```rb
-people = [
-    {
+```php
+$people = [
+    [
         "name"=>"Chase",
         "age"=>"30",
         "home_id"=>"1",
@@ -163,60 +164,74 @@ people = [
         "home_city"=>"New York",
         "home_state"=>"NY",
         "home_zip_code"=>"10019"
-    }
-]
+    ]
+];
 
-def data_transform(person_array)
-end
+function dataTransform($person_array){
 
-p data_transform people
+}
+
+dataTransform($people);
 ```
 
-Second, inside of `data_transform`, let's make a new object called `person`
+Second, inside of `dataTransform`, let's return an empty associative array called `$person`:
 
-```rb
-def data_transform(person_array)
-    person = {}
-end
+```php
+function dataTransform($person_array){
+    $person = [];
+    return $person;
+}
+```
+
+Set the result of `dataTransform($people);` to a variable and then `var_dump()` it:
+
+```php
+$result = dataTransform($people);
+var_dump($result);
 ```
 
 We can make whatever keys we want for our new object:
 
-```rb
-def data_transform(person_array)
-    person = {
-      "name" => "Chase",
-      "age" => "30"
-    }
-end
-```
-
-And we can ALMOST place our values from our `person_array` into our new hash
-
-```rb
-person = {
-  "name" => person_array["age"],
-  "age" => person_array["age"]
+```php
+function dataTransform($person_array){
+    $person = [
+        "name" => "Chase",
+        "age" => "30"
+    ];
+    return $person;
 }
 ```
 
-Check it!  This won't quite work because our `person_array` is an array. We can easily take the single hash out of the array using a ruby method `.first`
+And we can ALMOST place our values from our `$person_array` into our new hash
 
-```rb
-def data_transform(person_array)
-    person = person_array.first
-    return {
-      "name" => person["name"],
-      "age" => person["age"]
-    }
-end
+```php
+function dataTransform($person_array){
+    $person = [
+        "name" => $person_array["name"],
+        "age" => $person_array["age"]
+    ];
+    return $person;
+}
+```
+
+Check it!  This won't quite work because our `$person_array` is an associative array inside an indexed array (remember, `$person_array` will eventually contain multiple people). We can easily take the associative array out of the indexed array though:
+
+```php
+function dataTransform($person_array){
+    $first_person = $person_array[0];
+    $person = [
+        "name" => $first_person["name"],
+        "age" => $first_person["age"]
+    ];
+    return $person;
+}
 ```
 
 Now try again!  The full code:
 
-```rb
-people = [
-    {
+```php
+$people = [
+    [
         "name"=>"Chase",
         "age"=>"30",
         "home_id"=>"1",
@@ -224,76 +239,115 @@ people = [
         "home_city"=>"New York",
         "home_state"=>"NY",
         "home_zip_code"=>"10019"
-    }
-]
+    ]
+];
 
-def data_transform(person_array)
-    person = person_array.first
-    return {
-      "name" => person["name"],
-      "age" => person["age"]
-    }
-end
-
-p data_transform people
-```
-
-should print a hash containing just the name and the age of the person:
-
-```rb
-{"name"=>"Chase", "age"=>"30"}
-```
-
-It *ALMOST* matches the **New Format**, but the `age` is a string. We can use a method to fix that in a snap!
-
-```rb
-return {
-    "name" => person["name"],
-    "age" => person["age"].to_i
+function dataTransform($person_array){
+    $first_person = $person_array[0];
+    $person = [
+        "name" => $first_person["name"],
+        "age" => $first_person["age"]
+    ];
+    return $person;
 }
+
+$result = dataTransform($people);
+var_dump($result);
+```
+
+This should print a single associative array containing just the name and the age of the person:
+
+```php
+array(2) {
+  ["name"]=>
+  string(5) "Chase"
+  ["age"]=>
+  string(2) "30"
+}
+```
+
+It *ALMOST* matches the **New Format**, but the `age` is a string. We can use a special PHP function called `intval()` to fix that:
+
+```php
+$person = [
+    "name" => $first_person["name"],
+    "age" => intval($first_person["age"])
+];
 ```
 
 Check it again!
 
-```rb
-{"name"=>"Chase", "age"=>30}
+```php
+array(2) {
+  ["name"]=>
+  string(5) "Chase"
+  ["age"]=>
+  int(30)
+}
 ```
 
 ## Part 3 - build it
 
-Don't forget, we want our `data_transform` function to return an object that also includes the other information about our person.
+Don't forget, we want our `dataTransform` function to return an object that also includes the other information about our person.
 
-```rb
-{
+```php
+[
     "name"=>"Chase",
     "age"=>30,
-    "home"=> {
-      "id"=> 1,
-      "street"=>"1600 Broadway",
-      "city"=>"New York",
-      "state"=>"NY",
-      "zip_code"=> 10019
-    }
-}
+    "home"=> [
+        "id"=> 1,
+        "street"=>"1600 Broadway",
+        "city"=>"New York",
+        "state"=>"NY",
+        "zip_code"=> 10019
+    ]
+]
 ```
 
-How do we get that nested `home` hash in the results?
+How do we get that nested `home` associative array in the results?
 
 ## Part 4 - build it
 
-As we get new clients, not all of them will have a home right away. We need to add a way to check `if` a person has a home address, and if true, return the reshaped hash `else` just return the `person` hash
+As we get new clients, not all of them will have a home right away. We need to add a way to check `if` a person has a home address, and `if` that's the case, `return` the reshaped associative array `else` just `return` the `name` and `age` properties like we did in part 2.
 
-Don't forget to test it, there is sample 'data' available in Part 1 for you to use
+Don't forget to test it with something like this:
+
+```php
+$people = [
+    [
+        "name"=>"Chase",
+        "age"=>"30",
+        "home_id"=>"1",
+        "home_street"=>"1600 Broadway",
+        "home_city"=>"New York",
+        "home_state"=>"NY",
+        "home_zip_code"=>"10019"
+    ]
+];
+
+$result = dataTransform($people);
+var_dump($result);
+
+$people2 = [
+    [
+        "name" => "Gert",
+        "age" => "23"
+    ]
+];
+
+$result2 = dataTransform($people2);
+var_dump($result2);
+```
 
 ## Part 5 - build it
 
-HELLO already has three tenants! Converting each object's format one by one is a drag.  Write a new function `data_transforms` that converts an array of many `people` hashes into the **New Format** shape:
+HELLO already has three tenants! Converting each object's format one by one is a drag.  Update `dataTransform` so that it converts an array of many `people` into the **New Format** shape:
 
 ### Original Format
 
-```rb
-people = [
-    {
+```php
+$people = [
+    [
         "name"=>"Gert",
         "age"=>"23",
         "home_id"=> "1",
@@ -301,8 +355,8 @@ people = [
         "home_city"=>"New York",
         "home_state"=>"NY",
         "home_zip_code"=> "10019"
-    },
-    {
+    ],
+    [
         "name"=>"Alex",
         "age"=>"42",
         "home_id"=> "1",
@@ -310,64 +364,52 @@ people = [
         "home_city"=>"New York",
         "home_state"=>"NY",
         "home_zip_code"=> "10019"
-    },
-    {
+    ],
+    [
         "name"=>"Nico",
-        "age"=>"61",
-        "home_id"=> "1",
-        "home_street"=>"1600 Broadway",
-        "home_city"=>"New York",
-        "home_state"=>"NY",
-        "home_zip_code"=> "10019"
-    }
-]
+        "age"=>"61"
+    ]
+];
 ```
 
 Check yourself: does your method still work if a person doesn't yet have a home address?
 
 ### New Format
 
-```rb
-people = [
-    {
+```php
+[
+    [
         "name"=>"Gert",
         "age"=>23,
-        "home"=> {
+        "home"=> [
           "id"=> 1,
           "street"=>"1600 Broadway",
           "city"=>"New York",
           "state"=>"NY",
           "zip_code"=> 10019
-        }
-    },
-    {
+        ]
+    ],
+    [
         "name"=>"Alex",
         "age"=>42,
-        "home"=> {
+        "home"=> [
           "id"=> 1,
           "street"=>"1600 Broadway",
           "city"=>"New York",
           "state"=>"NY",
           "zip_code"=> 10019
-        }
-    },
-    {
+        ]
+    ],
+    [
         "name"=>"Nico",
-        "age"=> 61,
-        "home"=> {
-          "id"=> 1,
-          "street"=>"1600 Broadway",
-          "city"=>"New York",
-          "state"=>"NY",
-          "zip_code"=> 10019
-        }
-    }
+        "age"=> 61
+    ]
 ]
 ```
 
 ## Part 6
 
-For this part, write a brand new `data_transforms_locations` method.  Save your previous one(s)
+For this part, write a brand new `dataTransformLocations` method.  Save your previous one(s)
 
 HELLO is growing rapidly and has acquired an amazing high profile space for their next luxury dorm experience. So next, we'd like to be able to show a list of all our addresses with their corresponding `tenants`:
 
@@ -375,9 +417,9 @@ HELLO is growing rapidly and has acquired an amazing high profile space for thei
 
 **NOTE** assume all people with `home_id` of 1 are next to each other in the array.  Same with `home_id` of 2, 3, etc
 
-```rb
-people = [
-    {
+```php
+$people = [
+    [
         "name"=>"Gert",
         "age"=>"23",
         "home_id"=> "1",
@@ -385,8 +427,8 @@ people = [
         "home_city"=>"New York",
         "home_state"=>"NY",
         "home_zip_code"=> "10019"
-    },
-    {
+    ],
+    [
         "name"=>"Alex",
         "age"=>"42",
         "home_id"=> "1",
@@ -394,8 +436,8 @@ people = [
         "home_city"=>"New York",
         "home_state"=>"NY",
         "home_zip_code"=> "10019"
-    },
-    {
+    ],
+    [
         "name"=>"Nico",
         "age"=>"61",
         "home_id"=> "1",
@@ -403,8 +445,8 @@ people = [
         "home_city"=>"New York",
         "home_state"=>"NY",
         "home_zip_code"=> "10019"
-    },
-    {
+    ],
+    [
         "name"=>"Molly",
         "age"=>"55",
         "home_id"=> "2",
@@ -412,8 +454,8 @@ people = [
         "home_city"=>"San Francisco",
         "home_state"=>"CA",
         "home_zip_code"=> "94133"
-    },
-    {
+    ],
+    [
         "name"=>"Karolina",
         "age"=>"82",
         "home_id"=> "2",
@@ -421,83 +463,83 @@ people = [
         "home_city"=>"San Francisco",
         "home_state"=>"CA",
         "home_zip_code"=> "94133"
-    }
-]
+    ]
+];
 ```
 
 ### New Format
 
-```rb
+```php
 [
-    {
-      "id"=> 1,
-      "street"=>"1600 Broadway",
-      "city"=>"New York",
-      "state"=>"NY",
-      "zip_code"=> 10019,
-      "tenants" => [
-            {
+    [
+        "id"=> 1,
+        "street"=>"1600 Broadway",
+        "city"=>"New York",
+        "state"=>"NY",
+        "zip_code"=> 10019,
+        "tenants" => [
+            [
                 "name"=>"Gert",
                 "age"=>23
-            },
-            {
+            ],
+            [
                 "name"=>"Alex",
                 "age"=>42
-            },
-            {
+            ],
+            [
                 "name"=>"Nico",
                 "age"=>61
-            }
+            ]
         ]
-    },
-    {
-      "id"=> 2,
-      "street"=>"1 Alcatraz Island",
-      "city"=>"San Francisco",
-      "state"=>"CA",
-      "zip_code"=> 94133,
-      "tenants" => [
-            {
+    ],
+    [
+        "id"=> 2,
+        "street"=>"1 Alcatraz Island",
+        "city"=>"San Francisco",
+        "state"=>"CA",
+        "zip_code"=> 94133,
+        "tenants" => [
+            [
                 "name"=>"Molly",
                 "age"=>23
-            },
-            {
+            ],
+            [
                 "name"=>"Karolina",
                 "age"=>42
-            }
+            ]
         ]
-    }
+    ]
 ]
 ```
 
 ## Part 7 - Hungry for more
 
-Create the ability for `data_transform_location` to optionally return a specific home (with its `tenants`), based on an optional second `home_id` param:
+Create the ability for `dataTransformLocations` to optionally return a specific home (with its `tenants`), based on an optional second `home_id` param:
 
-```rb
-p data_transform_location people, 2
+```php
+$result = dataTransform($people, 2);
 ```
 
 should return
 
-```rb
-{
+```php
+[
     "id"=> 2,
     "street"=>"1 Alcatraz Island",
     "city"=>"San Francisco",
     "state"=>"CA",
     "zip_code"=> 94133,
     "tenants" => [
-        {
+        [
             "name"=>"Molly",
             "age"=>23
-        },
-        {
+        ],
+        [
             "name"=>"Karolina",
             "age"=>42
-        }
+        ]
     ]
-}
+]
 ```
 
 You did it! You started building your own [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping) (Object Relational Mapping)
